@@ -39,7 +39,7 @@ import { Pencil, Eye, Trash, Plus, Upload, X } from "lucide-react";
 /* ==================== Types ==================== */
 interface Category {
   id: string;
-  name: string;
+  name?: string; // Now optional
   imageUrl?: string;
   createdAt?: Timestamp;
 }
@@ -65,9 +65,7 @@ const formatName = (raw: string) =>
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(" ");
 
-const VALID_KEYWORDS = ["tile", "marble", "granite", "ceramic", "porcelain"];
-const isValidCategory = (name: string) =>
-  VALID_KEYWORDS.some((k) => name.toLowerCase().includes(k));
+// Removed: VALID_KEYWORDS & isValidCategory
 
 const DEFAULT_CATEGORIES = [
   "Floor Tiles",
@@ -189,8 +187,7 @@ const AdminPage: React.FC = () => {
         const fetched: Category[] = [];
         snap.docs.forEach((d) => {
           const data = d.data();
-          const name = formatName(data.name ?? "");
-          if (!name || !isValidCategory(name)) return;
+          const name = data.name ? formatName(data.name) : undefined; // Allow undefined
           fetched.push({
             id: d.id,
             name,
@@ -254,7 +251,7 @@ const AdminPage: React.FC = () => {
     <section className="min-h-screen bg-linear-to-b from-amber-50 to-white p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-teal-700 mb-8 text-center md:text-left">
-          Admin Panel - Aditya Tiles & Marbles
+          Admin Panel - Fruits Walla
         </h1>
 
         <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
@@ -275,11 +272,13 @@ const AdminPage: React.FC = () => {
                     {cat.imageUrl && (
                       <img
                         src={cat.imageUrl}
-                        alt={cat.name}
+                        alt={cat.name || "Category"}
                         className="w-10 h-10 rounded-lg object-cover"
                       />
                     )}
-                    <span className="text-lg font-medium text-gray-800">{cat.name}</span>
+                    <span className="text-lg font-medium text-gray-800">
+                      {cat.name || "Uncategorized"}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -373,14 +372,9 @@ const AddCategoryDialog: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    const formatted = formatName(name);
-    if (!formatted || !isValidCategory(formatted)) {
-      alert("Category must contain Tile, Marble, Granite, etc.");
-      return;
-    }
     try {
       await addDoc(collection(db, "categories"), {
-        name: formatted,
+        name: name.trim() ? formatName(name) : undefined, // Allow undefined
         imageUrl: image || "",
         createdAt: serverTimestamp(),
       });
@@ -406,21 +400,21 @@ const AddCategoryDialog: React.FC = () => {
         <DialogHeader>
           <DialogTitle>Add New Category</DialogTitle>
           <DialogDescription>
-            Create a new category. Name must include Tile, Marble, Granite, etc.
+            Create a new category. Name is optional.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <Label htmlFor="cat-name">Name</Label>
+            <Label htmlFor="cat-name">Name (Optional)</Label>
             <Input
               id="cat-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Floor Tiles"
+              placeholder="e.g., Floor Tiles (leave blank if not needed)"
             />
           </div>
           <div>
-            <Label htmlFor="cat-image">Image (auto-compressed &lt; 500 KB)</Label>
+            <Label htmlFor="cat-image">Image (auto-compressed less than 500 KB)</Label>
             <Input id="cat-image" type="file" accept="image/*" onChange={handleImage} />
             {preview && (
               <div className="mt-3">
@@ -448,7 +442,7 @@ interface EditCategoryDialogProps {
 }
 const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({ category }) => {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState(category.name);
+  const [name, setName] = useState(category.name || "");
   const [image, setImage] = useState<string | null>(category.imageUrl || null);
   const [preview, setPreview] = useState(category.imageUrl || "");
   const [sizeInfo, setSizeInfo] = useState("");
@@ -465,14 +459,9 @@ const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({ category }) => 
   };
 
   const handleSave = async () => {
-    const formatted = formatName(name);
-    if (!formatted || !isValidCategory(formatted)) {
-      alert("Category must contain Tile, Marble, Granite, etc.");
-      return;
-    }
     try {
       await updateDoc(doc(db, "categories", category.id), {
-        name: formatted,
+        name: name.trim() ? formatName(name) : undefined,
         imageUrl: image || "",
       });
       setOpen(false);
@@ -493,20 +482,21 @@ const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({ category }) => 
         <DialogHeader>
           <DialogTitle>Edit Category</DialogTitle>
           <DialogDescription>
-            Update category name and image.
+            Update category name and image. Name is optional.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <Label htmlFor="edit-cat-name">Name</Label>
+            <Label htmlFor="edit-cat-name">Name (Optional)</Label>
             <Input
               id="edit-cat-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="Leave blank to remove name"
             />
           </div>
           <div>
-            <Label htmlFor="edit-cat-image">Image (auto-compressed &lt; 500 KB)</Label>
+            <Label htmlFor="edit-cat-image">Image (auto-compressed less than 500 KB)</Label>
             <Input id="edit-cat-image" type="file" accept="image/*" onChange={handleImage} />
             {preview && (
               <div className="mt-3">
@@ -527,6 +517,14 @@ const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({ category }) => 
     </Dialog>
   );
 };
+
+/* ==================== Rest of the file (unchanged) ==================== */
+// [AddProductDialog, ProductRow, EditProductDialog, ViewProductDialog, DeleteDialog]
+// → All unchanged below. Paste from your original code.
+
+{/* --- Paste from your original file below this line --- */}
+{/* (AddProductDialog, ProductRow, EditProductDialog, ViewProductDialog, DeleteDialog) */}
+{/* Everything from here to export default AdminPage; is unchanged */}
 
 /* ---- Add Product (Multiple Images) ---- */
 interface AddProductDialogProps {
@@ -652,7 +650,7 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ categoryId }) => {
           </div>
 
           <div className="">
-  <Label>Images (auto-compressed &lt; 500 KB each)</Label>
+  <Label>Images (auto-compressed less than 500 KB each)</Label>
 
   <div className="grid grid-cols-2 gap-3 mt-3">
     {previews.map((src, i) => (
@@ -932,7 +930,7 @@ const ViewProductDialog: React.FC<ViewProductDialogProps> = ({ product, onClose 
       <DialogHeader>
         <DialogTitle>{product.name}</DialogTitle>
         <DialogDescription>
-          View product details including price, size, and description.
+          View product details including price,quantity and description.
         </DialogDescription>
       </DialogHeader>
       <div className="space-y-3 py-4">

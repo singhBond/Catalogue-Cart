@@ -4,23 +4,29 @@ import React, { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import {
   collection,
-  DocumentData,
   query,
   onSnapshot,
   Timestamp,
 } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
-import { Card, CardAction } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { ShoppingCart, Plus, Minus, CheckCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ShoppingCart,
+  Plus,
+  Minus,
+  CheckCircle,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
-// === Interfaces (Updated with imageUrls array) ===
+// === Interfaces ===
 interface Product {
   id: string;
   name: string;
@@ -29,8 +35,8 @@ interface Product {
   unit?: string;
   dimension?: string;
   description?: string;
-  imageUrl?: string;        // Legacy single image
-  imageUrls?: string[];     // NEW: Multiple images
+  imageUrl?: string;
+  imageUrls?: string[];
   imagePath?: string;
   createdAt?: Timestamp | any;
 }
@@ -47,6 +53,30 @@ interface Category {
   createdAt?: Timestamp | any;
 }
 
+// === Read More Component ===
+const DescriptionWithReadMore: React.FC<{ text: string }> = ({ text }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const maxLength = 120;
+
+  if (!text || text.length <= maxLength) {
+    return <p className="text-sm text-gray-700">{text}</p>;
+  }
+
+  return (
+    <div>
+      <p className={`text-sm text-gray-700 ${isExpanded ? "" : "line-clamp-3"}`}>
+        {isExpanded ? text : `${text.slice(0, maxLength)}...`}
+      </p>
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="text-teal-600 font-medium text-sm mt-1 hover:underline"
+      >
+        {isExpanded ? "Read less" : "Read more"}
+      </button>
+    </div>
+  );
+};
+
 // === Main Component ===
 const CataloguePage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -57,11 +87,8 @@ const CataloguePage: React.FC = () => {
   const [cartOpen, setCartOpen] = useState<boolean>(false);
   const [successOpen, setSuccessOpen] = useState<boolean>(false);
   const [orderId, setOrderId] = useState<string>("");
-
-  // === Image Carousel State ===
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Reset index when product changes
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [selectedProduct]);
@@ -101,14 +128,13 @@ const CataloguePage: React.FC = () => {
       },
       (error) => {
         console.error("Error fetching categories:", error);
-        alert("Failed to load categories. Check permissions.");
       }
     );
 
     return () => unsub();
   }, [activeCategory]);
 
-  // === Load Products per Category ===
+  // === Load Products ===
   useEffect(() => {
     const unsubs: (() => void)[] = [];
 
@@ -208,7 +234,7 @@ const CataloguePage: React.FC = () => {
       product.description ? `Details: ${product.description}\n` : ""
     }\nPlease share more info.`;
     window.open(
-      `https://wa.me/918210936795?text=${encodeURIComponent(message)}`,
+      `https://wa.me/917970521414?text=${encodeURIComponent(message)}`,
       "_blank"
     );
   };
@@ -237,7 +263,7 @@ const CataloguePage: React.FC = () => {
     )}*\n\nPlease confirm my order.`;
 
     window.open(
-      `https://wa.me/918210936795?text=${encodeURIComponent(message)}`,
+      `https://wa.me/917970521414?text=${encodeURIComponent(message)}`,
       "_blank"
     );
 
@@ -255,7 +281,6 @@ const CataloguePage: React.FC = () => {
     0
   );
 
-  // === Get current image array ===
   const getImageArray = (product: Product): string[] => {
     if (product.imageUrls && product.imageUrls.length > 0) {
       return product.imageUrls.filter(url => url && url.trim() !== "");
@@ -279,17 +304,17 @@ const CataloguePage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col items-center text-center py-10 bg-linear-to-r from-orange-100 via-amber-100 to-yellow-50">
         <h1 className="text-4xl md:text-6xl font-extrabold text-teal-700">
-          Aditya Tiles & Marbles
+          Fruits Walla
         </h1>
         <h2 className="text-2xl md:text-4xl font-bold text-orange-700 mt-2">
-          Explore Our Premium Products
+          Eat Healthy , Be Healthy
         </h2>
         <p className="text-gray-600 max-w-2xl mt-3 text-sm md:text-lg">
-          Discover stylish, high-quality tiles and marbles for your space.
+          Get fresh , high-quality fruits and vegetables for your space.
         </p>
       </div>
 
-      {/* Layout */}
+      {/* Layout - Original Sidebar Preserved */}
       <div className="flex flex-row w-full max-w-7xl mx-auto px-4 py-10 gap-6">
         {/* Sidebar */}
         <aside className="w-28 sm:w-40 md:w-60 sticky top-24 h-[calc(100vh-6rem)] overflow-y-auto bg-amber-50 border-r rounded-xl shadow-sm p-3">
@@ -320,7 +345,7 @@ const CataloguePage: React.FC = () => {
           ))}
         </aside>
 
-        {/* Products Grid */}
+        {/* Products Grid - Cards with ORIGINAL SIZE */}
         <main className="flex-1">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
             {currentCategoryName}
@@ -333,35 +358,37 @@ const CataloguePage: React.FC = () => {
                 <Card
                   key={product.id}
                   onClick={() => setSelectedProduct(product)}
-                  className="overflow-hidden  rounded-2xl bg-amber-50 shadow-md hover:shadow-xl transition-all cursor-pointer flex flex-col border"
+                  className="overflow-hidden rounded-2xl bg-amber-50 shadow-md hover:shadow-xl transition-all cursor-pointer flex flex-col border"
                 >
-                  <div className="relative w-full h-56  bg-gray-100">
+                  {/* Fixed Height Image - Same as Original */}
+                  <div className="relative w-full h-56 bg-gray-100">
                     <img
                       src={firstImage}
                       alt={product.name}
-                      className=" absolute inset-0 w-full h-full object-cover "
+                      className="absolute inset-0 w-full h-full object-cover"
                       onError={(e) => {
                         e.currentTarget.src = "/placeholder.svg";
                       }}
                     />
                   </div>
 
-                  <div className="py-2 px-4  flex flex-col grow">
-                    <h3 className="font-semibold text-lg text-gray-800 line-clamp-2">
+                  {/* Responsive Content Inside Fixed Card */}
+                  <div className=" py-2 px-4 flex flex-col grow">
+                    <h3 className="font-semibold text-lg text-gray-800 line-clamp-2 ">
                       {product.name}
                     </h3>
                     {product.dimension && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-sm mt-1 text-gray-500  line-clamp-1">
                         {product.dimension}
                       </p>
                     )}
-                    <div className="mt-2 flex items-baseline gap-2">
+                    <div className="mt-1 flex items-baseline gap-2 flex-wrap">
                       <span className="text-xl font-bold text-amber-600">
                         ₹{product.price}
                       </span>
                       <span className="text-sm text-gray-500">/{unit}</span>
                       {product.mrp && (
-                        <span className="text-sm text-gray-400 line-through ml-1">
+                        <span className="text-sm text-gray-400 line-through">
                           ₹{product.mrp}/{unit}
                         </span>
                       )}
@@ -374,105 +401,102 @@ const CataloguePage: React.FC = () => {
         </main>
       </div>
 
-      {/* Product Dialog with Carousel */}
-      <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
-        {selectedProduct && (
-          <DialogContent className="max-w-lg sm:max-w-2xl rounded-2xl p-6">
-            <DialogHeader>
-              <DialogTitle className="text-xl">{selectedProduct.name}</DialogTitle>
-            </DialogHeader>
+      {/* === RESPONSIVE PRODUCT DIALOG (Unchanged from last version) === */}
+     <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
+  {selectedProduct && (
+    <DialogContent className="max-w-full w-full h-full md:max-w-2xl md:h-auto md:max-h-[90vh] rounded-none md:rounded-2xl p-0 overflow-hidden">
+      <DialogHeader className="p-4 md:p-4 pb-0.5">
+        <DialogTitle className="text-lg md:text-xl pr-10">{selectedProduct.name}</DialogTitle>
+      </DialogHeader>
 
-            <div className="flex flex-col sm:flex-row gap-6 mt-4">
-              {/* Carousel */}
-              <div className="relative w-full sm:w-1/2 h-90 bg-gray-100 rounded-lg overflow-hidden">
-                {(() => {
-                  const images = getImageArray(selectedProduct);
-                  const currentImg = images[currentImageIndex];
-
-                  return (
-                    <>
-                      <img
-                        src={currentImg}
-                        alt={`${selectedProduct.name} - ${currentImageIndex + 1}`}
-                        className="w-full h-full object-cover transition-opacity duration-300"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg";
-                        }}
-                      />
-
-                      {/* Navigation Arrows */}
-                      {images.length > 1 && (
-                        <>
-                          <button
-                            onClick={() => navigateImage("prev")}
-                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
-                            aria-label="Previous image"
-                          >
-                            <ChevronLeft size={20} />
-                          </button>
-                          <button
-                            onClick={() => navigateImage("next")}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
-                            aria-label="Next image"
-                          >
-                            <ChevronRight size={20} />
-                          </button>
-
-                          {/* Image Counter */}
-                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-                            {currentImageIndex + 1} / {images.length}
-                          </div>
-                        </>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
-
-              {/* Product Details */}
-              <div className="flex flex-col justify-between flex-1">
-                {selectedProduct.dimension && (
-                  <p className="text-sm text-gray-600">
-                    <strong>Size:</strong> {selectedProduct.dimension}
-                  </p>
+      <div className="flex flex-col md:flex-row gap-2 md:gap-4 p-2 md:p-4 pt-0 overflow-y-auto max-h-[80vh] md:max-h-none">
+        {/* Image Carousel */}
+        <div className="relative w-full md:w-1/2 h-64 md:h-80 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+          {(() => {
+            const images = getImageArray(selectedProduct);
+            const currentImg = images[currentImageIndex] || "/placeholder.svg";
+            return (
+              <>
+                <img
+                  src={currentImg}
+                  alt={`${selectedProduct.name} - ${currentImageIndex + 1}`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.svg";
+                  }}
+                />
+                {images.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => navigateImage("prev")}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      onClick={() => navigateImage("next")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                      {currentImageIndex + 1} / {images.length}
+                    </div>
+                  </>
                 )}
-                {selectedProduct.description && (
-                  <p className="text-sm text-gray-700 mt-2">
-                    {selectedProduct.description}
-                  </p>
-                )}
-                <div className="mt-4">
-                  <p className="text-2xl font-bold text-amber-600">
-                    ₹{selectedProduct.price}
-                    <span className="text-sm font-normal text-gray-500 ml-1">
-                      /{selectedProduct.unit || "unit"}
-                    </span>
-                  </p>
-                  {selectedProduct.mrp && (
-                    <p className="text-sm text-gray-400 line-through">
-                      ₹{selectedProduct.mrp}/{selectedProduct.unit || "unit"}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                  <Button
-                    className="bg-amber-500 hover:bg-amber-600 text-white"
-                    onClick={() => handleAddToCart(selectedProduct)}
-                  >
-                    Add to Cart
-                  </Button>
-                  <Button
-                    className="bg-teal-600 hover:bg-teal-700 text-white"
-                    onClick={() => handleContactClick(selectedProduct)}
-                  >
-                    Contact to Buy
-                  </Button>
-                </div>
+              </>
+            );
+          })()}
+        </div>
+
+        {/* Product Details */}
+        <div className="flex-1 flex flex-col justify-between mt-1 md:mt-0">
+          <div className="space-y-2">
+            {selectedProduct.dimension && (
+              <p className="text-sm text-gray-600">
+                <strong>Size:</strong> {selectedProduct.dimension}
+              </p>
+            )}
+            {selectedProduct.description && (
+              <div>
+                <DescriptionWithReadMore text={selectedProduct.description} />
               </div>
-            </div>
-          </DialogContent>
-        )}
-      </Dialog>
+            )}
+          </div>
+
+          <div className="mt-3">
+            <p className="text-2xl font-bold text-amber-600">
+              ₹{selectedProduct.price}
+              <span className="text-sm font-normal text-gray-500 ml-1">
+                /{selectedProduct.unit || "unit"}
+              </span>
+            </p>
+            {selectedProduct.mrp && (
+              <p className="text-sm text-gray-400 line-through">
+                ₹{selectedProduct.mrp}/{selectedProduct.unit || "unit"}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 mt-5">
+            <Button
+              className="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm md:text-base"
+              onClick={() => handleAddToCart(selectedProduct)}
+            >
+              Add to Cart
+            </Button>
+            <Button
+              className="flex-1 bg-teal-600 hover:bg-teal-700 text-white text-sm md:text-base"
+              onClick={() => handleContactClick(selectedProduct)}
+            >
+              Contact to Buy
+            </Button>
+          </div>
+        </div>
+      </div>
+    </DialogContent>
+  )}
+</Dialog>
 
       {/* Floating Cart */}
       <div
@@ -578,9 +602,9 @@ const CataloguePage: React.FC = () => {
           <DialogTitle className="text-xl font-bold text-gray-800 mb-2">
             Order Placed!
           </DialogTitle>
-          <DialogDescription className="text-gray-600">
+          <p className="text-gray-600">
             Your order <span className="font-semibold text-teal-600">#{orderId}</span> has been sent via WhatsApp.
-          </DialogDescription>
+          </p>
           <Button
             className="mt-5 bg-teal-600 hover:bg-teal-700 text-white"
             onClick={() => setSuccessOpen(false)}

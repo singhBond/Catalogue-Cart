@@ -251,7 +251,7 @@ const AdminPage: React.FC = () => {
     <section className="min-h-screen bg-linear-to-b from-amber-50 to-white p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-teal-700 mb-8 text-center md:text-left">
-          Admin Panel - Fruits Walla
+          Admin -Baker's Point
         </h1>
 
         <div className="flex justify-between items-center mb-6 flex-wrap gap-4">

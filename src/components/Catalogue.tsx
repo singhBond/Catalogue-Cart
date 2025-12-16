@@ -304,13 +304,13 @@ const CataloguePage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col items-center text-center py-10 bg-linear-to-r from-orange-100 via-amber-100 to-yellow-50">
         <h1 className="text-4xl md:text-6xl font-extrabold text-teal-700">
-          Fruits Walla
+          Baker's Point
         </h1>
         <h2 className="text-2xl md:text-4xl font-bold text-orange-700 mt-2">
           Eat Healthy , Be Healthy
         </h2>
         <p className="text-gray-600 max-w-2xl mt-3 text-sm md:text-lg">
-          Get fresh , high-quality fruits and vegetables for your space.
+          Get fresh , high-quality cakes and pastries for your space.
         </p>
       </div>
 
